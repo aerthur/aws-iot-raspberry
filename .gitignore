@@ -1,0 +1,4 @@
+*.key
+*.pem
+*.crt
+#/aws-iot-device-sdk-python => patched
