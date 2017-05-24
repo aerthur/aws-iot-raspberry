@@ -10,17 +10,15 @@ If (!(Test-Path ".\root-CA.crt")) {
     Invoke-WebRequest -Uri https://www.symantec.com/content/en/us/enterprise/verisign/roots/VeriSign-Class%203-Public-Primary-Certification-Authority-G5.pem -OutFile root-CA.crt
 }
 
+pip install paho-mqtt
+pip install pychromecast
+pip install gmusicapi
 
 # install AWS Device SDK for NodeJS if not already installed
 If (!(Test-Path ".\aws-iot-device-sdk-python")) {
     "`nInstalling AWS SDK..."
     git clone https://github.com/aws/aws-iot-device-sdk-python
+    pushd aws-iot-device-sdk-python
+    python setup.py install
+    popd
 }
-
-#admin
-cd aws-iot-device-sdk-python
-python setup.py install
-cd ..
-
-"`nRunning pub/sub sample application..."
-python push.py -e ag8rb1siy3rc7.iot.eu-west-1.amazonaws.com -r root-CA.crt -c iot-certificate.pem.crt -k iot-private.pem.key
