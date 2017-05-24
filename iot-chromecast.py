@@ -4,10 +4,45 @@ import gmusicapi
 from gmusicapi import Mobileclient
 import time
 import os
+from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 
 with open('config/config.json') as json_data_file:
     config = json.load(json_data_file)
 print(config)
+
+allSongs=None
+songIndex=-1
+shouldPlay=False
+
+def playNextSong():
+    global allSongs, songIndex,shouldPlay
+    shouldPlay=True
+    songIndex+=1
+    if (songIndex>=allSongs.count):
+        songIndex = 0
+    songid=allSongs[songIndex]['id']
+    print("playing ",songIndex," ", songid)
+    stream = api.get_stream_url(songid)
+    mc.play_media(stream, 'audio/mp3')
+    mc.block_until_active()
+    mc.play()
+
+def castCallback(client, userdata, message):
+    print("Received a new message(button): ", message.payload, "from topic: ", message.topic)
+    playNextSong()
+
+# Init AWSIoTMQTTClient
+aWSIoTMQTTClient = None
+aWSIoTMQTTClient = AWSIoTMQTTClient("RASPBERRY-ROUTER")
+aWSIoTMQTTClient.configureEndpoint(config['awsIot']['host'], config['awsIot']['port'])
+aWSIoTMQTTClient.configureCredentials(config['awsIot']['rootCAPath'], config['awsIot']['privateKeyPath'], config['awsIot']['certificatePath'])
+aWSIoTMQTTClient.configureAutoReconnectBackoffTime(1, 32, 20)
+aWSIoTMQTTClient.configureOfflinePublishQueueing(-1)  # Infinite offline Publish queueing
+aWSIoTMQTTClient.configureDrainingFrequency(2)  # Draining: 2 Hz
+aWSIoTMQTTClient.configureConnectDisconnectTimeout(10)  # 10 sec
+aWSIoTMQTTClient.configureMQTTOperationTimeout(5)  # 5 sec
+aWSIoTMQTTClient.connect()
+aWSIoTMQTTClient.subscribe("/cast/music", 1, castCallback)
 
 chromecasts = pychromecast.get_chromecasts()
 cast = next(cc for cc in chromecasts if cc.device.friendly_name == "Music")
@@ -20,23 +55,12 @@ if api.login(config['google']['login'], config['google']['password'], api.FROM_M
     print("Unable to login")
 else:
     print("*****************************************************************")
-    songid=api.get_all_songs()[2]['id']
-    print(songid)
-    print("*****************************************************************")
+    allSongs=api.get_all_songs()
 
-    stream = api.get_stream_url(songid)
-    mc.play_media(stream, 'audio/mp3')
-    mc.block_until_active()
-    mc.play()
+    while True:
+        time.sleep(0.1)
+        if (shouldPlay and not mc.is_playing):
+            playNextSong()
 
-    time.sleep(2)
 
-    while mc.is_playing:
-	    time.sleep(1)
-
-    songid=api.get_all_songs()[1]['id']
-    print(songid)
-    stream = api.get_stream_url(songid)
-    mc.play_media(stream, 'audio/mp3')
-    mc.block_until_active()
-    mc.play()
+ #mc.is_playing

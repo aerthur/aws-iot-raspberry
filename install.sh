@@ -19,3 +19,8 @@ if [ ! -d ./aws-iot-device-sdk-python ]; then
   python setup.py install
   popd
 fi
+
+#raspberry startup
+cp ./startup/iot-router /etc/init.d/.
+chmod 755 /etc/init.d/iot-router
+update-rc.d /etc/init.d/iot-router defaults

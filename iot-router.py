@@ -13,14 +13,6 @@ def topicCallback(client, userdata, message):
 	print("Received a new message(button): ", message.payload, "from topic: ", message.topic)
 	aWSIoTMQTTClient.publish(message.topic, message.payload, 1)
 
-# Configure logging
-logger = logging.getLogger("AWSIoTPythonSDK.core")
-logger.setLevel(logging.DEBUG)
-streamHandler = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-streamHandler.setFormatter(formatter)
-logger.addHandler(streamHandler)
-
 #Init Pubsub
 raspberryMQTTClient = mqtt.Client()
 raspberryMQTTClient.on_message = topicCallback
@@ -44,4 +36,4 @@ aWSIoTMQTTClient.connect()
 
 # Publish to the same topic in a loop forever
 while True:
-	time.sleep(1)
+	time.sleep(0.1)
