@@ -1,4 +1,5 @@
 #! /bin/sh
 
 cd /etc/iot/aws-iot-raspberry/
-python iot-router.py
+python iot-router.py &
+python iot-chromecast.py &
