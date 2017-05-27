@@ -1,5 +1,6 @@
 *.key
 *.pem
 *.crt
+*.pyc
 config.json
 /aws-iot-device-sdk-python
