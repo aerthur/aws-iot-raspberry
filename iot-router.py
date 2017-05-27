@@ -20,7 +20,8 @@ def topicCallback(client, userdata, message):
     aWSIoTMQTTClient.publish(message.topic, message.payload, 1)
 
 def on_disconnect(client, userdata, rc):
-    time.sleep(1)
+    logging.info("Disconnected from mosquitto")
+    time.sleep(0.1)
     raspberryMQTTClient.reconnect()
     raspberryMQTTClient.loop_start
 
