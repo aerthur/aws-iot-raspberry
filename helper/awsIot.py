@@ -2,7 +2,7 @@ from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 
 def getAwsClient(deviceId, config):
     aWSIoTMQTTClient = None
-    aWSIoTMQTTClient = AWSIoTMQTTClient("RASPBERRY-CHROMECAST")
+    aWSIoTMQTTClient = AWSIoTMQTTClient(deviceId)
     aWSIoTMQTTClient.configureEndpoint(config['awsIot']['host'], config['awsIot']['port'])
     aWSIoTMQTTClient.configureCredentials(config['awsIot']['rootCAPath'], config['awsIot']['privateKeyPath'], config['awsIot']['certificatePath'])
     aWSIoTMQTTClient.configureAutoReconnectBackoffTime(1, 32, 20)
