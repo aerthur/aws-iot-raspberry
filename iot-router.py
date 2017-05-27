@@ -22,23 +22,26 @@ def topicCallback(client, userdata, message):
 def on_disconnect(client, userdata, rc):
     logging.info("Disconnected from mosquitto")
     time.sleep(0.1)
-    raspberryMQTTClient.reconnect()
-    raspberryMQTTClient.loop_start
+    connect()
+
+def connect():
+    global raspberryMQTTClient
+    raspberryMQTTClient = mqtt.Client()
+    raspberryMQTTClient.on_message = topicCallback
+    raspberryMQTTClient.connect(config['localIot']['host'], config['localIot']['port'], 60)
+    raspberryMQTTClient.subscribe("/#", 1)
+    raspberryMQTTClient.loop_start()
+    raspberryMQTTClient.on_disconnect = on_disconnect
 
 # Configure logging
 configureLogs(app, config)
 
 #Init Pubsub
-raspberryMQTTClient = mqtt.Client()
-raspberryMQTTClient.on_message = topicCallback
-raspberryMQTTClient.connect(config['localIot']['host'], config['localIot']['port'], 60)
-raspberryMQTTClient.subscribe("/#", 1)
-raspberryMQTTClient.loop_start()
-raspberryMQTTClient.on_disconnect = on_disconnect
+raspberryMQTTClient = None
+connect()
 
 # Init AWSIoTMQTTClient
 aWSIoTMQTTClient = getAwsClient(app, config)
-# Connect and subscribe to AWS IoT
 aWSIoTMQTTClient.connect()
 
 # Publish to the same topic in a loop forever
