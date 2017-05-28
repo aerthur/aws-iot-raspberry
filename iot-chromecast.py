@@ -56,7 +56,9 @@ def playNextSong(retry=True):
 
 def castCallback(client, userdata, message):
     print("Received a new message: ", message.payload, "from topic: ", message.topic)
-    playNextSong()
+    msg = json.loads(message.payload)
+    if (msg['cmd']=="play"):
+        playNextSong()
 
 def tryConnectToCast():
     global mc,chromecastName
