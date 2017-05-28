@@ -21,7 +21,7 @@ configureLogs(app, config)
 allLists = None
 allSongs = None
 currentList = ""
-songIndex = 0
+songIndex = -1
 shouldPlay = False
 mc = None
 api = None
