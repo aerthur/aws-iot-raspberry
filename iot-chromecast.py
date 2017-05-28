@@ -27,9 +27,10 @@ mc = None
 api = None
 
 def manageNext(playList):
-    global allSongs, songIndex,api
+    global allSongs, songIndex,api,currentList
     try:
         allSongs = next(entry['tracks'] for entry in allLists if entry['name'] == playList)
+        currentList=playList
     except:
         allSongs = allLists[0]['tracks']
     songIndex+=1
