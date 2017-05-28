@@ -18,18 +18,28 @@ print(config)
 # Configure logging
 configureLogs(app, config)
 
+allLists = None
 allSongs = None
-songIndex = 35
+currentList = ""
+songIndex = 0
 shouldPlay = False
 mc = None
 api = None
 
-def playNext():
+def manageNext(playList):
     global allSongs, songIndex,api
+    try:
+        allSongs = next(entry['tracks'] for entry in allLists if entry['name'] == playList)
+    except:
+        allSongs = allLists[0]['tracks']
     songIndex+=1
     if (songIndex>=len(allSongs)):
         songIndex = 0
-    songid = allSongs[songIndex]['id']
+
+def playNext(playList):
+    global allSongs, songIndex,api
+    manageNext(playList)
+    songid = allSongs[songIndex]['trackId']
     print("playing ",songIndex," ", songid, " ", len(allSongs))
     stream = api.get_stream_url(songid)
     mc.play_media(stream, 'audio/mp3')
@@ -37,11 +47,11 @@ def playNext():
     mc.play()
     time.sleep(2)
 
-def playNextSong(retry=True):
+def playNextSong(playList, retry=True):
     global shouldPlay
     shouldPlay = False
     try:
-        playNext()
+        playNext(playList)
         shouldPlay=True
     except:
         print("retry...")
@@ -49,7 +59,7 @@ def playNextSong(retry=True):
             tryConnectToCast()
             tryLogToGoogle()
             try:
-                playNextSong(False)
+                playNextSong(playList, False)
                 shouldPlay=True
             except:
                 None
@@ -58,7 +68,7 @@ def castCallback(client, userdata, message):
     print("Received a new message: ", message.payload, "from topic: ", message.topic)
     msg = json.loads(message.payload)
     if (msg['cmd']=="play"):
-        playNextSong()
+        playNextSong(msg['list'])
 
 def tryConnectToCast():
     global mc,chromecastName
@@ -78,12 +88,19 @@ def tryConnectToCast():
     return True
 
 def tryLogToGoogle():
-    global api,allSongs
+    global api,allSongs, allLists
     api = Mobileclient(False)
     if api.login(config['google']['login'], config['google']['password'], api.FROM_MAC_ADDRESS, "fr_fr") != True:
         return False
     print("*****************************************************************")
-    allSongs=api.get_all_songs()
+    #allSongs=api.get_all_songs()
+    #allLists=api.get_all_playlists()
+    allLists=api.get_all_user_playlist_contents()
+    #print("*****************************************************************")
+    #print("*****************************************************************")
+    #print("*****************************************************************")
+    #print(allSongs[0]) #7519279c-0afd-3b20-9295-715a09ae774b
+    
     return True
 
 # Init Chromecast
@@ -101,4 +118,4 @@ aWSIoTMQTTClient.subscribe("/cast/music", 1, castCallback)
 while True:
     time.sleep(0.1)
     if (shouldPlay and not mc.is_playing):
-        playNextSong()
+        playNextSong(currentList)
